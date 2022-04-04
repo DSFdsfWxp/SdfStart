@@ -2,7 +2,7 @@
 
 A light but useful start page.
 
-一个轻量且实用的起始页.
+一个轻量但实用的起始页.
 
 ## 关于开发
 
