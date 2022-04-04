@@ -1,0 +1,42 @@
+body{
+	position:absolute;
+	height:100%;
+	width:100%;
+	top:0px;
+	left:0px;
+	overflow:hidden;
+	margin: 0px;
+	background: rgb(75,75,75);
+}
+
+#app{
+	position:absolute;
+	height:100%;
+	width:100%;
+	top:0px;
+	left:0px;
+	overflow:hidden;
+	margin: 0px;
+}
+
+#backgroundimg{
+	position:absolute;
+	height:100%;
+	width:100%;
+	top:0px;
+	left:0px;
+	overflow:hidden;
+	margin: 0px;
+}
+
+#backgroundimg-img{
+	position:absolute;
+	height:100%;
+	width:100%;
+	top:0px;
+	left:0px;
+	overflow:hidden;
+	margin: 0px;
+	opacity: 0;
+	transition: opacity 1.5s;
+}
