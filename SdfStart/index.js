@@ -10,7 +10,10 @@ A light start page.
 
 const SdfDOM = {
 	backgroundimg: document.getElementById("backgroundimg-img"),
-	background: document.getElementById("backgroundimg")
+	background: document.getElementById("backgroundimg"),
+	toptime: document.getElementById("top-time"),
+	topdate: document.getElementById("top-date"),
+	backgroundpicCopyright: document.getElementById("pic-copyrights")
 };
 
 class SdfSettings{
@@ -137,18 +140,19 @@ class SdfSettings{
 
 class SdfBackground{
 	static init(){
+		this.backgroundTxtColor=[255,255,255];
+		this.__c=null;
 		this.randomPicApi=function(){
-			//SdfToolKit.apiCallBackJson("https://cn.bing.com/HPImageArchive.aspx?format=js&idx=0&n=1&mkt=zh-CN",(obj)=>{
-				SdfDOM.backgroundimg.style.background=SdfToolKit.url2css("https://api.dujin.org/bing/1920.php");
-			//});
+			var t=SdfSettings.settingsStorage.background.color;
+			SdfBackground.setBackgroundColor(t[0],t[1],t[2]);
 		};
 		switch (SdfSettings.settingsStorage.background.mode){
 			case "Color":
 				var t=SdfSettings.settingsStorage.background.color;
-				SdfDOM.backgroundimg.style.background=SdfToolKit.rgb2css(t[0],t[1],t[2]);
+				SdfBackground.setBackgroundColor(t[0],t[1],t[2]);
 				break;
 			case "UserDefinePic":
-				SdfDOM.backgroundimg.style.background=SdfToolKit.url2css(SdfSettings.settingsStorage.background.UserDefinePic);
+				SdfBackground.setBackgroundPic(SdfSettings.settingsStorage.background.UserDefinePic,"");
 				break;
 			case "RandomPic":
 				if (SdfSettings.settingsStorage.background.randomPicApi!=0) {
@@ -161,7 +165,7 @@ class SdfBackground{
 				SdfSettings.settingsStorage.background.color=[80,80,80];
 				SdfSettings.updateToStorage();
 				var t=SdfSettings.settingsStorage.background.color;
-				SdfDOM.backgroundimg.style.background=SdfToolKit.rgb2css(t[0],t[1],t[2]);
+				SdfBackground.setBackgroundColor(t[0],t[1],t[2]);
 				break;
 		}
 	}
@@ -172,6 +176,65 @@ class SdfBackground{
 	
 	static _fadeOut(){
 		SdfDOM.backgroundimg.style.opacity="0";
+	}
+	
+	
+	static setBackgroundPic(url,copyright){
+		this._fadeOut();
+		SdfDOM.backgroundpicCopyright.innerText="图片来源: [究竟是哪呢?]";
+		if (copyright.trim()!=""){
+			SdfDOM.backgroundpicCopyright.innerText="图片来源: "+copyright;
+		}else{
+			SdfDOM.backgroundpicCopyright.innerText="";
+		}
+		SdfDOM.backgroundimg.style.background=SdfToolKit.url2css(url);
+		SdfDOM.backgroundimg.style.backgroundSize="cover";
+		var c=document.createElement("img");
+		SdfBackground.__c=c;
+		c.addEventListener("load",()=>{
+			//SdfToolKit.sleep(1000).then(()=>{
+				/*
+				SdfBackground.__c.LeftY=SdfBackground.__c.height-210;
+				SdfBackground.__c.height=210;
+				SdfBackground.__c.LeftX=SdfBackground.__c.width-460;
+				SdfBackground.__c.width=460;
+				*/
+				//console.log(SdfBackground.__c);
+				try{
+					var t=SdfToolKit.getImageColor(SdfBackground.__c,SdfBackground.__c.width-460,SdfBackground.__c.height-210,210,460);
+					for (var ii=0;ii<=2;ii++){
+						t[ii]=255-t[ii];
+						if (t[ii]>=127){
+							t[ii]=SdfToolKit.limitMax(t[ii]+75,255);
+						}else{
+							t[ii]=SdfToolKit.limitMin(t[ii]-75,0);
+						}
+					}
+					SdfBackground.backgroundTxtColor=[t[0],t[1],t[2]];
+					SdfTop.refreshTxt();
+					SdfBackground._fadeIn();
+				}catch(e){}
+			//});
+		});
+		c.src=url;
+	}
+	
+	static setBackgroundColor(r,g,b){
+		SdfBackground._fadeOut();
+		SdfDOM.backgroundpicCopyright.innerText="";
+		SdfDOM.backgroundimg.style.background=SdfToolKit.rgb2css(r,g,b);
+		this.backgroundTxtColor=[255-r,255-g,255-b];
+		SdfTop.refreshTxt();
+		SdfBackground._fadeIn();
+	}
+}
+
+class SdfTop{
+	static refreshTxt(){
+		var t=SdfToolKit.rgb2css(SdfBackground.backgroundTxtColor[0],SdfBackground.backgroundTxtColor[1],SdfBackground.backgroundTxtColor[2]);
+		SdfDOM.toptime.style.color=t;
+		SdfDOM.topdate.style.color=t;
+		SdfDOM.backgroundpicCopyright.style.color=t;
 	}
 }
 
@@ -187,7 +250,7 @@ class SdfToolKit{
 		return outstr;
 	}
 	static url2css(u){
-		return this.fillstr("url(%s)",[u]);
+		return this.fillstr("url('%s')",[u]);
 	}
 	static sleep(t){
 		return new Promise((resolve) => setTimeout(resolve, t));
@@ -204,23 +267,92 @@ class SdfToolKit{
 				xmlHttpRequest= new XMLHttpRequest();
 			}catch(s){console.warn("XMLHttpRequest is required.");return;}
         }
-        xmlHttpRequest.onreadystatechange = ()=>{ 
+        xmlHttpRequest.onload = ()=>{ 
+			if (xmlHttpRequest.responseText.trim()!="" && xmlHttpRequest.responseText!=null){
+				//if(xmlHttpRequest.readyState == 4 && xmlHttpRequest.status == 200){
 					cb(JSON.parse(xmlHttpRequest.responseText));
+				//}
+			}
 		};
-        xmlHttpRequest.open("POST",u,true);
+        xmlHttpRequest.open("GET",u,true);
         xmlHttpRequest.send(null);
+	}
+	static getImageColor(img,x,y,h,w) {
+      var canvas = document.createElement('canvas')
+      canvas.width = w;
+      canvas.height = h;
+
+      var context = canvas.getContext("2d");
+      img.crossOrigin = "Anonymous"
+      context.drawImage(img, x, y, canvas.width, canvas.height,0,0,w,h);
+
+      // 获取像素数据
+      var data = context.getImageData(0, 0, w, h).data;
+      //console.log(data)
+      var r = 1,
+        g = 1,
+        b = 1;
+      // 取所有像素的平均值
+      for (var row = 0; row < h; row++) {
+        for (var col = 0; col < w; col++) {
+          // console.log(data[((img.width * row) + col) * 4])
+          if (row == 0) {
+            r += data[((w * row) + col)];
+            g += data[((w * row) + col) + 1];
+            b += data[((w * row) + col) + 2];
+          } else {
+            r += data[((w * row) + col) * 4];
+            g += data[((w * row) + col) * 4 + 1];
+            b += data[((w * row) + col) * 4 + 2];
+          }
+        }
+      }
+
+      //console.log(r, g, b)
+      // 求取平均值
+      r /= (w * h);
+      g /= (w * h);
+      b /= (w * h);
+
+      // 将最终的值取整
+      r = Math.round(r);
+      g = Math.round(g);
+      b = Math.round(b);
+      //console.log(r, g, b)
+
+      return [r, g, b]
+    }
+	static fetchCache(url,usingf){
+		fetch(url, {
+			method: "GET",
+			mode: "no-cors",
+			headers: {
+				"Content-Type": "image/jpeg"
+			}
+		}).then(function(res) {usingf();});
+	}
+	static limitMax(i,max){
+		return (i>max) ? max : i;
+	}
+	static limitMin(i,min){
+		return (i<min) ? min : i;
 	}
 }
 
+
 function SdfStart_Main(){
+	/*
 	if ('serviceWorker' in navigator) {
-		navigator.serviceWorker.register('SdfStart/sw.js');
+		navigator.serviceWorker.register('SdfStart/sw.js').then(function(registration) {
+			console.log(registration);
+		}).catch(function(err) {
+			console.log(err);
+		});
 	}
+	*/
 	SdfSettings.init();
 	SdfBackground.init();
-	SdfToolKit.sleep(250).then(()=>{
-		SdfBackground._fadeIn();
-	});
+
 }
 
 SdfStart_Main();
