@@ -193,12 +193,6 @@ class SdfBackground{
 		SdfBackground.__c=c;
 		c.addEventListener("load",()=>{
 			//SdfToolKit.sleep(1000).then(()=>{
-				/*
-				SdfBackground.__c.LeftY=SdfBackground.__c.height-210;
-				SdfBackground.__c.height=210;
-				SdfBackground.__c.LeftX=SdfBackground.__c.width-460;
-				SdfBackground.__c.width=460;
-				*/
 				//console.log(SdfBackground.__c);
 				try{
 					var t=SdfToolKit.getImageColor(SdfBackground.__c,SdfBackground.__c.width-460,SdfBackground.__c.height-210,210,460);
@@ -227,6 +221,30 @@ class SdfBackground{
 		SdfTop.refreshTxt();
 		SdfBackground._fadeIn();
 	}
+	
+	static setBackgroundMode(m){
+		switch (m){
+			case "top":
+				SdfDOM.background.style.filter="";
+				SdfDOM.backgroundimg.style.filter="";
+				break;
+			case "search":
+				SdfDOM.background.style.filter="";
+				SdfDOM.backgroundimg.style.filter="brightness(0.75)";
+				break;
+			case "search-in":
+				SdfDOM.background.style.filter="blur(7px)";
+				SdfDOM.backgroundimg.style.filter="brightness(0.75)";
+				break;
+			case "links":
+				SdfDOM.background.style.filter="blur(7px)";
+				SdfDOM.backgroundimg.style.filter="brightness(0.7)";
+				break;
+			default:
+				break;
+		}
+	}
+	
 }
 
 class SdfTop{
@@ -235,6 +253,49 @@ class SdfTop{
 		SdfDOM.toptime.style.color=t;
 		SdfDOM.topdate.style.color=t;
 		SdfDOM.backgroundpicCopyright.style.color=t;
+	}
+}
+
+class SdfTime{
+	static init(){
+		this.__TdayCover=new Array();
+		this.__TdayCover[0]="日";
+		this.__TdayCover[1]="一";
+		this.__TdayCover[2]="二";
+		this.__TdayCover[3]="三";
+		this.__TdayCover[4]="四";
+		this.__TdayCover[5]="五";
+		this.__TdayCover[6]="六";
+		
+		this.__rfDate();
+		//var date = new Date();
+		setInterval("SdfTime.__rfDate()",1000);
+	}
+	static __TnumCover(val){
+		if (val<0){
+			return "00";
+		}
+		if (val<10){
+			return "0"+val.toString();
+		}
+		if (val>=10){
+			return val.toString();
+		}
+	}
+	static __rfDate(){
+		var date = new Date();
+		var Tdate = new Array();
+		var Ttime = new Array();
+		var Tday=this.__TdayCover[date.getDay()];
+		Ttime[1]=this.__TnumCover(date.getHours());
+		Ttime[2]=this.__TnumCover(date.getMinutes());
+		Ttime[3]=this.__TnumCover(date.getSeconds());
+		Tdate[1]=this.__TnumCover(date.getFullYear());
+		Tdate[2]=this.__TnumCover(date.getMonth()+1);
+		Tdate[3]=this.__TnumCover(date.getDate());
+		//Tobj.innerText=Tdate[1]+"年"+Tdate[2]+"月"+Tdate[3]+"日 周"+Tday+" "+Ttime[1]+":"+Ttime[2]+":"+Ttime[3];
+		SdfDOM.toptime.innerText=SdfToolKit.fillstr("%s:%s",[Ttime[1],Ttime[2]]);
+		SdfDOM.topdate.innerText=SdfToolKit.fillstr("%s年%s月%s日, 周%s",[Tdate[1],Tdate[2],Tdate[3],Tday]);
 	}
 }
 
@@ -352,7 +413,8 @@ function SdfStart_Main(){
 	*/
 	SdfSettings.init();
 	SdfBackground.init();
-
+	SdfTime.init();
+	
 }
 
 SdfStart_Main();
