@@ -3,17 +3,38 @@
 # SdfStart
 # by: DSFdsfWxp
 	
-A light start page.
-一个轻量起始页.
+A light but useful start page.
+一个轻量但实用的起始页.
 	
 -------*/
+
 
 const SdfDOM = {
 	backgroundimg: document.getElementById("backgroundimg-img"),
 	background: document.getElementById("backgroundimg"),
 	toptime: document.getElementById("top-time"),
 	topdate: document.getElementById("top-date"),
-	backgroundpicCopyright: document.getElementById("pic-copyrights")
+	backgroundpicCopyright: document.getElementById("pic-copyrights"),
+	topdiv: document.getElementById("top"),
+	searchdiv: document.getElementById("search"),
+	searchtime: document.getElementById("search-time")
+};
+
+const SdfFlags = {
+	State: {
+		Startup: -2,
+		NotSet: -1,
+		Top: 0,
+		Search: 1,
+		SearchIn: 2,
+		Links: 3
+	},
+	BackgroundMode: {
+		Top: 0,
+		Search: 1,
+		SearchIn: 2,
+		Links: 3
+	}
 };
 
 class SdfSettings{
@@ -140,7 +161,7 @@ class SdfSettings{
 
 class SdfBackground{
 	static init(){
-		this.backgroundTxtColor=[255,255,255];
+		this.topTxtColor=[255,255,255];
 		this.__c=null;
 		this.randomPicApi=function(){
 			var t=SdfSettings.settingsStorage.background.color;
@@ -204,7 +225,7 @@ class SdfBackground{
 							t[ii]=SdfToolKit.limitMin(t[ii]-75,0);
 						}
 					}
-					SdfBackground.backgroundTxtColor=[t[0],t[1],t[2]];
+					SdfBackground.topTxtColor=[t[0],t[1],t[2]];
 					SdfTop.refreshTxt();
 					SdfBackground._fadeIn();
 				}catch(e){}
@@ -217,26 +238,26 @@ class SdfBackground{
 		SdfBackground._fadeOut();
 		SdfDOM.backgroundpicCopyright.innerText="";
 		SdfDOM.backgroundimg.style.background=SdfToolKit.rgb2css(r,g,b);
-		this.backgroundTxtColor=[255-r,255-g,255-b];
+		this.topTxtColor=[255-r,255-g,255-b];
 		SdfTop.refreshTxt();
 		SdfBackground._fadeIn();
 	}
 	
 	static setBackgroundMode(m){
 		switch (m){
-			case "top":
+			case SdfFlags.BackgroundMode.Top:
 				SdfDOM.background.style.filter="";
 				SdfDOM.backgroundimg.style.filter="";
 				break;
-			case "search":
+			case SdfFlags.BackgroundMode.Search:
 				SdfDOM.background.style.filter="";
 				SdfDOM.backgroundimg.style.filter="brightness(0.75)";
 				break;
-			case "search-in":
+			case SdfFlags.BackgroundMode.SearchIn:
 				SdfDOM.background.style.filter="blur(7px)";
 				SdfDOM.backgroundimg.style.filter="brightness(0.75)";
 				break;
-			case "links":
+			case SdfFlags.BackgroundMode.Links:
 				SdfDOM.background.style.filter="blur(7px)";
 				SdfDOM.backgroundimg.style.filter="brightness(0.7)";
 				break;
@@ -248,13 +269,41 @@ class SdfBackground{
 }
 
 class SdfTop{
+	static init(){
+		this.__isOn=false;
+		SdfDOM.topdiv.addEventListener("mousemove",()=>{SdfTop.__mouseHandle();});
+		this.__lastState=SdfFlags.State.Search;
+	}
+	static __mouseHandle(){
+		if (!this.__isOn){return;}
+		this.__isOn=false;
+		SdfStart.switchState(this.__lastState);
+	}
 	static refreshTxt(){
-		var t=SdfToolKit.rgb2css(SdfBackground.backgroundTxtColor[0],SdfBackground.backgroundTxtColor[1],SdfBackground.backgroundTxtColor[2]);
+		var t=SdfToolKit.rgb2css(SdfBackground.topTxtColor[0],SdfBackground.topTxtColor[1],SdfBackground.topTxtColor[2]);
 		SdfDOM.toptime.style.color=t;
 		SdfDOM.topdate.style.color=t;
 		SdfDOM.backgroundpicCopyright.style.color=t;
 	}
+	static _fadeIn(){
+		SdfDOM.topdiv.style.opacity="1";
+		this.__isOn=true;
+	}
+	static _fadeOut(){
+		SdfDOM.topdiv.style.opacity="0";
+		this.__isOn=false;
+	}
+	static registerLastState(s){
+		this.__lastState=s;
+	}
 }
+
+class SdfSearch{
+	static init(){
+		
+	}
+}
+
 
 class SdfTime{
 	static init(){
@@ -268,8 +317,8 @@ class SdfTime{
 		this.__TdayCover[6]="六";
 		
 		this.__rfDate();
-		//var date = new Date();
 		setInterval("SdfTime.__rfDate()",1000);
+		
 	}
 	static __TnumCover(val){
 		if (val<0){
@@ -293,9 +342,10 @@ class SdfTime{
 		Tdate[1]=this.__TnumCover(date.getFullYear());
 		Tdate[2]=this.__TnumCover(date.getMonth()+1);
 		Tdate[3]=this.__TnumCover(date.getDate());
-		//Tobj.innerText=Tdate[1]+"年"+Tdate[2]+"月"+Tdate[3]+"日 周"+Tday+" "+Ttime[1]+":"+Ttime[2]+":"+Ttime[3];
+		// Tdate[1] 年, Tdate[2] 月, Tdate[3] 日, 周 Tday,  Ttime[1] : Ttime[2] : Ttime[3]
 		SdfDOM.toptime.innerText=SdfToolKit.fillstr("%s:%s",[Ttime[1],Ttime[2]]);
 		SdfDOM.topdate.innerText=SdfToolKit.fillstr("%s年%s月%s日, 周%s",[Tdate[1],Tdate[2],Tdate[3],Tday]);
+		SdfDOM.searchtime.innerText=SdfToolKit.fillstr("%s年%s月%s日 周%s %s:%s",[Tdate[1],Tdate[2],Tdate[3],Tday,Ttime[1],Ttime[2]]);
 	}
 }
 
@@ -398,23 +448,132 @@ class SdfToolKit{
 	static limitMin(i,min){
 		return (i<min) ? min : i;
 	}
-}
-
-
-function SdfStart_Main(){
-	/*
-	if ('serviceWorker' in navigator) {
-		navigator.serviceWorker.register('SdfStart/sw.js').then(function(registration) {
-			console.log(registration);
-		}).catch(function(err) {
-			console.log(err);
-		});
+	static randomNum(s,e){
+		return parseInt(Math.random() * (e - s + 1) + s, 10);
 	}
-	*/
-	SdfSettings.init();
-	SdfBackground.init();
-	SdfTime.init();
-	
+	static randomStr(length){
+		var t="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890";
+		var o='';
+		for (var i=1;i<=length;i++){
+			o+=t[SdfToolKit.randomNum(0,t.length-1)];
+		}
+		return o;
+	}
 }
 
-SdfStart_Main();
+
+class SdfStart{
+	static init(){
+		this.__state=SdfFlags.State.Startup;
+		this.__version=[0,0,1];
+		this.__tips="只还是一个不太完善的测试版啦~";
+	}
+	static main(){
+		
+		// If we need a serviceWorker later... (keep for backup)
+		/*
+		if ('serviceWorker' in navigator) {
+			navigator.serviceWorker.register('SdfStart/sw.js').then(function(registration) {
+				console.log(registration);
+			}).catch(function(err) {
+				console.log(err);
+			});
+		}
+		*/
+		
+		this.init();
+		
+		this._greeting();
+		
+		this.switchContextMenu(false);
+		
+		SdfSettings.init();
+		SdfBackground.init();
+		SdfTop.init();
+		SdfTime.init();
+		
+		this.__state=SdfFlags.State.Search;
+		SdfBackground.setBackgroundMode(SdfFlags.BackgroundMode.Search);
+		
+	}
+	static _greeting(){
+		var g=  "\n";
+		g = g+  "**************** \n";
+		g = g+  "*   SdfStart   * \n";
+		g = g+  "**************** \n\n";
+		g = g+  "#[%s] \n\n";
+		g = g+  "#Version: %s.%s.%s \n";
+		g = g+  "$请遵守 MIT 开源协议. \n";
+		g = g+  "$项目地址: https://github.com/DSFdsfWxp/SdfStart \n";
+		g = g+  "$By DSFdsfWxp, made with ❤. \n\n"
+		
+		g = SdfToolKit.fillstr(g,[this.__tips,this.__version[0].toString(),this.__version[1].toString(),this.__version[2].toString()]);
+		
+		console.log(g);
+	}
+	static _cleanState(){
+		switch (this.__state){
+			case SdfFlags.State.Top:
+				SdfTop._fadeOut();
+				SdfBackground.setBackgroundMode(SdfFlags.BackgroundMode.Top);
+				this.__state=SdfFlags.State.NotSet;
+				break;
+			case SdfFlags.State.Search:
+				
+				this.__state=SdfFlags.State.NotSet;
+				break;
+			case SdfFlags.State.SearchIn:
+				
+				this.__state=SdfFlags.State.NotSet;
+				break;
+			case SdfFlags.State.Links:
+				
+				this.__state=SdfFlags.State.NotSet;
+				break;
+			default:
+				console.warn(SdfToolKit.fillstr("A unexpect state: %s\n    #At: SdfStart->_cleanState()",[s.toString()]));
+				break;
+		}
+	}
+	static switchState(s){
+		switch (s){
+			case SdfFlags.State.Top:
+				this._cleanState();
+				SdfTop._fadeIn();
+				this.__state=s;
+				break;
+			case SdfFlags.State.Search:
+				this._cleanState();
+				
+				this.__state=s;
+				break;
+			case SdfFlags.State.SearchIn:
+				this._cleanState();
+				
+				this.__state=s;
+				break;
+			case SdfFlags.State.Links:
+				this._cleanState();
+				
+				this.__state=s;
+				break;
+			default:
+				console.warn(SdfToolKit.fillstr("A unexpect state: %s\n    #At: SdfStart->switchState(s)",[s.toString()]));
+				break;
+		}
+	}
+	static switchContextMenu(o){
+		switch (o){
+			case true:
+				document.oncontextmenu=null;
+				break;
+			case false:
+				document.oncontextmenu=()=>{return false;};
+				break;
+			default:
+				break;
+		}
+	}
+}
+
+SdfStart.main();
