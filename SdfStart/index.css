@@ -5,7 +5,7 @@
 	url('fonts/16164.svg#TTTGBMedium')format('svg'),
 	url('fonts/16164.eot')format('embedded-opentype');
 	font-weight:normal;
-　　font-style:normal;
+	font-style:normal;
 }
 @font-face{
 	font-family: 'Segoe UI Semibold';src: url('fonts/seguisb.ttf');
@@ -149,26 +149,35 @@ p{
 	position:absolute;
 	text-align:center;
 	border-radius:20px;
-	height:30px;
+	height:40px;
 	width: 15%;
-	top: calc(30% - 15px);
+	top: calc(50% - 20px);
 	left: calc(50% - 7.5%);
-	transition: 0.25s;
+	transition: all 0.25s;
 	border-width: 2px;
     border-style: solid;
 	border-image: none;
 	backdrop-filter:blur(7px);
 	outline: none;
 	appearance: none;
+	font-size: 16px;
 }
 
 #search-txt:hover{
-	width: 30%;
-	left: calc(50% - 15%);
+	width: 20%;
+	top: calc(50% - 20px);
+	left: calc(50% - 10%);
 }
 
 #search-txt:focus{
 	width: 30%;
+	top: calc(30% - 20px);
+	left: calc(50% - 15%);
+}
+
+#search-txt:active{
+	width: 30%;
+	top: calc(30% - 20px);
 	left: calc(50% - 15%);
 }
 
@@ -188,6 +197,7 @@ p{
 	background: rgba(0,0,0,.65);
 }
 
+
 footer{
 	position: fixed;
 	bottom: 5px;
@@ -198,7 +208,23 @@ footer{
 }
 
 #aboutinfo-txt{
+	position: relative;
 	font-family:'Segoe UI';
 	font-size: 13px;
-	color: rgb(255,255,255);
+	padding: 2px 5px;
+	left: -50%;
+	color: rgb(175,175,175);
+	backdrop-filter:blur(7px);
+	border-radius: 5px;
+	
+}
+
+#aboutinfo-txt a{
+	text-decoration: none;
+	color: rgb(175,175,175);
+	transition: color 0.25s;
+}
+
+#aboutinfo-txt a:hover{
+	color: rgb(240,240,240);
 }
